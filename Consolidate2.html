@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Combine CSV Files by Employee Name</title>
+    <title>Combine CSV Files by Employee</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 </head>
 <body>
-    <h1>Combine CSV Files by Employee Name</h1>
+    <h1>Combine CSV Files by Employee</h1>
     <input type="file" id="csvFiles" multiple accept=".csv">
     <button onclick="combineFiles()">Combine Files</button>
     <br><br>
@@ -16,7 +16,7 @@
     <script>
         function combineFiles() {
             const files = document.getElementById('csvFiles').files;
-            const combinedData = {}; // Store data by employee name
+            const combinedData = {}; // Store data by employee
 
             // Check if files were selected
             if (!files.length) {
@@ -34,19 +34,19 @@
                     skipEmptyLines: true,
                     complete: function(results) {
                         results.data.forEach(row => {
-                            const employeeName = row['EMPLOYEE NAME'];
+                            const employee = row['EMPLOYEE'];
                             
-                            // Exclude rows where EMPLOYEE NAME is "total"
-                            if (employeeName && employeeName.toLowerCase() === "total") return;
+                            // Exclude rows where EMPLOYEE is "total"
+                            if (employee && employee.toLowerCase() === "total") return;
 
                             // Initialize employee in combined data if not already present
-                            if (!combinedData[employeeName]) {
-                                combinedData[employeeName] = [];
+                            if (!combinedData[employee]) {
+                                combinedData[employee] = [];
                             }
                             
-                            // Add location to the row and store it under the employee name
+                            // Add location to the row and store it under the employee
                             row['Location'] = locationName;
-                            combinedData[employeeName].push(row);
+                            combinedData[employee].push(row);
                         });
                         
                         // When all files are processed, generate combined CSV
@@ -61,10 +61,10 @@
         function generateCombinedCSV(data) {
             const combinedRows = [];
             
-            // Organize data by employee name, adding each location's data under the employee
-            for (const [employeeName, records] of Object.entries(data)) {
+            // Organize data by employee, adding each location's data under the employee
+            for (const [employee, records] of Object.entries(data)) {
                 records.forEach(record => {
-                    combinedRows.push({ 'EMPLOYEE NAME': employeeName, ...record });
+                    combinedRows.push({ 'EMPLOYEE': employee, ...record });
                 });
             }
             
