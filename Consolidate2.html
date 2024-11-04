@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Combine CSV Files by Employee Name</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+</head>
+<body>
+    <h1>Combine CSV Files by Employee Name</h1>
+    <input type="file" id="csvFiles" multiple accept=".csv">
+    <button onclick="combineFiles()">Combine Files</button>
+    <br><br>
+    <a id="downloadLink" style="display: none;">Download Combined CSV</a>
+
+    <script>
+        function combineFiles() {
+            const files = document.getElementById('csvFiles').files;
+            const combinedData = {}; // Store data by employee name
+
+            // Check if files were selected
+            if (!files.length) {
+                alert("Please select CSV files to combine.");
+                return;
+            }
+
+            let filesProcessed = 0;
+
+            Array.from(files).forEach(file => {
+                const locationName = file.name.split('.')[0]; // Use filename as location name
+                
+                Papa.parse(file, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: function(results) {
+                        results.data.forEach(row => {
+                            const employeeName = row['EMPLOYEE NAME'];
+                            
+                            // Exclude rows where EMPLOYEE NAME is "total"
+                            if (employeeName && employeeName.toLowerCase() === "total") return;
+
+                            // Initialize employee in combined data if not already present
+                            if (!combinedData[employeeName]) {
+                                combinedData[employeeName] = [];
+                            }
+                            
+                            // Add location to the row and store it under the employee name
+                            row['Location'] = locationName;
+                            combinedData[employeeName].push(row);
+                        });
+                        
+                        // When all files are processed, generate combined CSV
+                        if (++filesProcessed === files.length) {
+                            generateCombinedCSV(combinedData);
+                        }
+                    }
+                });
+            });
+        }
+
+        function generateCombinedCSV(data) {
+            const combinedRows = [];
+            
+            // Organize data by employee name, adding each location's data under the employee
+            for (const [employeeName, records] of Object.entries(data)) {
+                records.forEach(record => {
+                    combinedRows.push({ 'EMPLOYEE NAME': employeeName, ...record });
+                });
+            }
+            
+            // Convert to CSV format and create a download link
+            const csv = Papa.unparse(combinedRows);
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+
+            const downloadLink = document.getElementById('downloadLink');
+            downloadLink.href = url;
+            downloadLink.download = 'combined_output.csv';
+            downloadLink.style.display = 'inline';
+            downloadLink.textContent = 'Download Combined CSV';
+        }
+    </script>
+</body>
+</html>
